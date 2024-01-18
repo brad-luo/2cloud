@@ -64,9 +64,7 @@ function confirmSelection() {
         return;
     }
     updateLogo(selectedLogo.src);
-    // Additional logic for confirming selection
-    console.log('Selected Logos:', selectedLogoPaths);
-
+    // close modal
     closeModal();
 }
 
@@ -159,7 +157,9 @@ function uploadLogo() {
                 } else {
                     console.log('Logo uploaded successfully:', data);
                     alert("Logo uploaded successfully!");
-                    // Optionally update UI or perform other actions on success
+                    // replace product img
+                    var synthesis_url = apiUrlBase + data["synthesis_url"]
+                    document.getElementById("product-img").setAttribute("src", synthesis_url);
                 }
             })
             .catch(error => {
@@ -173,14 +173,14 @@ function uploadLogo() {
 }
 
 function updateLogo(src) {
-    src = src.replace(apiUrlBase, "");
+    var logo_url = src.replace(apiUrlBase, "");
     fetch(apiUrlBase + 'update-logo', {
         method: 'POST',
         headers: {
             'Authorization': sessionStorage.getItem(sessionIDName),
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ logo_url: src }),
+        body: JSON.stringify({ logo_url: logo_url }),
     })
         .then(response => response.json())
         .then(data => {
@@ -190,7 +190,11 @@ function updateLogo(src) {
             } else {
                 console.log('Logo updated successfully:', data);
                 alert("Logo updated successfully!");
-                // Optionally update UI or perform other actions on success
+                // replace logo img
+                document.getElementById("user-logo").setAttribute("src", src);
+                // replace product img
+                var synthesis_url = apiUrlBase + data["synthesis_url"]
+                document.getElementById("product-img").setAttribute("src", synthesis_url);
             }
         })
         .catch(error => {
@@ -277,8 +281,8 @@ function handleUserData() {
                 document.getElementById("user-logo").setAttribute("src", logoImgUrl);
 
                 // render product img
-                if (data["systhesis_url"]) {
-                    productImgUrl = apiUrlBase + data["systhesis_url"]
+                if (data["synthesis_url"]) {
+                    productImgUrl = apiUrlBase + data["synthesis_url"]
                 }
                 else {
                     productImgUrl = apiUrlBase + data["product_url"]

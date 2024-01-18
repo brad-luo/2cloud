@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 
-def connect_mysql(db_host="localhost", user="root", passwd="", db="TaskA", charset="utf8"):
+def connect_mysql(db_host="localhost", user="root", port=3306, passwd="", db="Mysql", charset="utf8"):
     conn = MySQLdb.connect(host=db_host, user=user, passwd=passwd, db=db, charset=charset)
     conn.autocommit(True)
     return conn.cursor()
@@ -55,7 +55,7 @@ class MyHandler(BaseHTTPRequestHandler):
             "id": data[0],
             "username": data[1],
             "product_url": data[2],
-            "systhesis_url": data[3],
+            "synthesis_url": data[3],
             "session_id": session_id,
             "logo_url": user_logo["logo_url"]
         }
@@ -114,7 +114,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
         # match pictures
         elif re.search(r'\.(jpg|jpeg|png)$', self.path, re.IGNORECASE):
-            product_pic_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.path[1:])
+            product_pic_path = os.path.join(base_url, self.path[1:])
             if os.path.exists(product_pic_path) and os.path.isfile(product_pic_path):
                 with open(product_pic_path, 'rb') as image_file:
                     self.send_response(200)
@@ -187,9 +187,12 @@ class MyHandler(BaseHTTPRequestHandler):
         elif self.path == '/upload-logo':
             user_data = self._get_user()
             form_data = self._load_multipart_data()
+            logo_name = form_data["logo_name"][0]
+            if isinstance(logo_name, bytes):
+                logo_name = logo_name.decode('utf-8')
             # use timestamp to generate the img name
             img_path = "/".join(
-                ["media", str(user_data["id"]), "logo", str(int(time.time())) + "_" + form_data["logo_name"][0]])
+                ["media", str(user_data["id"]), "logo", str(int(time.time())) + "_" + logo_name])
             # save file to file system
             write_image(form_data["logo"][0], img_path)
             # save logo url to db
@@ -229,12 +232,13 @@ class MyHandler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     default_product_url = "media/default_product.jpeg"
     default_logo_url = "media/default_logo.png"
-
+    base_url = os.path.dirname(os.path.abspath(__file__))
     # mysql db
-    db = connect_mysql()
-
-    users = []  # Sample data for demonstration
-    server_address = ('', 8000)
+    db = connect_mysql(db_host="localhost", user="root", port=3306, passwd="", db="TaskA", charset="utf8")
+    # start server
+    server_addr = 'localhost'
+    server_port = 8000
+    server_address = (server_addr, server_port)
     httpd = HTTPServer(server_address, MyHandler)
-    print('Server running on port 8000...')
+    print('Server running on {}:{}...'.format(server_addr, server_port))
     httpd.serve_forever()
