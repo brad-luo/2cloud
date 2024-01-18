@@ -12,7 +12,7 @@ import numpy as np
 
 
 def connect_mysql(db_host="localhost", user="root", port=3306, passwd="", db="Mysql", charset="utf8"):
-    conn = MySQLdb.connect(host=db_host, user=user, passwd=passwd, db=db, charset=charset)
+    conn = MySQLdb.connect(host=db_host, user=user, port=port, passwd=passwd, db=db, charset=charset)
     conn.autocommit(True)
     return conn.cursor()
 
