@@ -84,14 +84,23 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        .logout {
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
 <h2>My Products</h2>
 <a href="{% url 'product_upload' %}" class="upload-button">Upload Product</a>
 <div class="search-container">
+    <div>
     <input type="text" id="searchInput" class="search-input" placeholder="Search...">
     <button onclick="searchProducts()">Search</button>
+    </div>
+        <div class="logout">
+            <a href="{% url 'logout' %}">Logout</a>
+    </div>
 </div>
 <div id="productContainer" class="product-container">
     {% if products %}
