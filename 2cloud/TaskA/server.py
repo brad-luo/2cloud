@@ -4,6 +4,7 @@ import os
 import re
 import time
 from cgi import parse_header, parse_multipart
+from urllib.parse import quote, unquote
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import MySQLdb
@@ -65,10 +66,10 @@ class MyHandler(BaseHTTPRequestHandler):
         db.execute("select id, logo_url from logo where user_id={} order by updated_at desc".format(user_id))
         if latest:
             data = db.fetchone()
-            return {"id": data[0], "logo_url": data[1]}
+            return {"id": data[0], "logo_url": quote(data[1])}
         else:
             data_list = db.fetchall()
-            return [{"id": data[0], "logo_url": data[1]} for data in data_list]
+            return [{"id": data[0], "logo_url": quote(data[1])} for data in data_list]
 
     def _load_json_data(self):
         content_length = int(self.headers['Content-Length'])
@@ -114,7 +115,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
         # match pictures
         elif re.search(r'\.(jpg|jpeg|png)$', self.path, re.IGNORECASE):
-            product_pic_path = os.path.join(base_url, self.path[1:])
+            # unquote to decode url and get the absolute path
+            product_pic_path = os.path.join(base_url, unquote(self.path[1:]))
             if os.path.exists(product_pic_path) and os.path.isfile(product_pic_path):
                 with open(product_pic_path, 'rb') as image_file:
                     self.send_response(200)
@@ -190,6 +192,10 @@ class MyHandler(BaseHTTPRequestHandler):
             logo_name = form_data["logo_name"][0]
             if isinstance(logo_name, bytes):
                 logo_name = logo_name.decode('utf-8')
+            # unquote
+            print(logo_name)
+            logo_name = unquote(logo_name)
+            print(logo_name)
             # use timestamp to generate the img name
             img_path = "/".join(
                 ["media", str(user_data["id"]), "logo", str(int(time.time())) + "_" + logo_name])
@@ -198,6 +204,7 @@ class MyHandler(BaseHTTPRequestHandler):
             # save logo url to db
             db.execute("insert into logo (user_id, logo_url) values (%s, %s)", (user_data["id"], img_path))
             # synthesise images
+            print(img_path)
             syn_img = synthesise_image(user_data["product_url"], img_path)
             syn_img_path = "/".join(["media", str(user_data["id"]), "synthesise",
                                      str(int(time.time())) + "_" + user_data["product_url"].split("/")[-1]])
@@ -206,15 +213,16 @@ class MyHandler(BaseHTTPRequestHandler):
             # update sysnthesise url to db
             db.execute("update user set synthesis_url=%s where id=%s", (syn_img_path, user_data["id"]))
             self._set_response(201, "application/json")
-            self.wfile.write(json.dumps({"synthesis_url": syn_img_path}).encode('utf-8'))
+            self.wfile.write(json.dumps({"synthesis_url": quote(syn_img_path)}).encode('utf-8'))
 
         elif self.path == '/update-logo':
             user_data = self._get_user()
             data = self._load_json_data()
+            logo_url = unquote(data["logo_url"])
             # update logo update time
-            db.execute("update logo set updated_at=now() where logo_url=%s", (data["logo_url"],))
+            db.execute("update logo set updated_at=now() where logo_url=%s", (logo_url,))
             # synthesise images
-            syn_img = synthesise_image(user_data["product_url"], data["logo_url"])
+            syn_img = synthesise_image(user_data["product_url"], logo_url)
             syn_img_path = "/".join(["media", str(user_data["id"]), "synthesise",
                                      str(int(time.time())) + "_" + user_data["product_url"].split("/")[-1]])
             # save file to file system
@@ -222,7 +230,7 @@ class MyHandler(BaseHTTPRequestHandler):
             # update sysnthesise url to db
             db.execute("update user set synthesis_url=%s where id=%s", (syn_img_path, user_data["id"]))
             self._set_response(201, "application/json")
-            self.wfile.write(json.dumps({"synthesis_url": syn_img_path}).encode('utf-8'))
+            self.wfile.write(json.dumps({"synthesis_url": quote(syn_img_path)}).encode('utf-8'))
 
         else:
             self._set_response(404)

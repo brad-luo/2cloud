@@ -120,16 +120,21 @@ function handleFileSelect(event) {
     const fileInput = event.target;
     const file = fileInput.files[0];
 
-    if (file) {
+    // file size limit: 1.5MB
+    if (file && file.size <= 1572864) {
         const reader = new FileReader();
         reader.onload = function (e) {
             const userLogo = document.getElementById('user-logo');
             userLogo.src = e.target.result;
         };
         reader.readAsDataURL(file);
-    }
 
-    uploadLogo();
+        uploadLogo();
+    }
+    else {
+        alert("File size must be less than 1.5MB, please try again.");
+
+    }
 }
 
 function uploadLogo() {
@@ -140,7 +145,7 @@ function uploadLogo() {
         const formData = new FormData();
 
         formData.append('logo', file);
-        formData.append('logo_name', file.name)
+        formData.append('logo_name', encodeURI(file.name))
 
         fetch(apiUrlBase + 'upload-logo', {
             method: 'POST',

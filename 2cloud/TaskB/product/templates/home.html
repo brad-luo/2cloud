@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Home</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Other user information can go here...</p>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>
