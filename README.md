@@ -11,10 +11,14 @@ any interference.
 
 For the demo, please visit [http://pythoner.me/2cloud/TaskA/www/login.html](http://pythoner.me/2cloud/TaskA/www/login.html).
 
+For the demo video on youtube, please visit [https://youtu.be/yTGsNvKIIas](https://youtu.be/yTGsNvKIIas)
+
 ## Task B
 
 Task B is implemented using Django, and the development approach is combination of front-end and back-end.
 Making good use of Django template engine can save a lot of time, web pages are rendered on the serve side.
 
 For the demo, please vist [http://pythoner.me:8006/accounts/register](http://pythoner.me:8006/accounts/register).
+
+For the demo video on youtube, please visit [https://youtu.be/EFDGzoVGpwg](https://youtu.be/EFDGzoVGpwg)
 
